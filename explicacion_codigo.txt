@@ -1,0 +1,76 @@
+Vista General
+Tu proyecto es un CRUD de usuarios con arquitectura separada:
+1. Backend en Express + MySQL (tp2-crudo-bien)
+2. Frontend en React/Vite (vite-project)
+3. Comunicacion por HTTP en http://localhost:3000/api/usuarios
+
+Backend
+app.js
+- Crea el servidor Express.
+- Carga variables de entorno con dotenv.
+- Habilita cors() para permitir peticiones desde el frontend.
+- Habilita express.json() para leer req.body en JSON.
+- Monta rutas con prefijo /api.
+- Levanta servidor en puerto 3000.
+
+database.js
+- Crea la conexion MySQL con variables DB_HOST, DB_USER, DB_PASSWORD, DB_NAME.
+- Intenta conectarse al iniciar y loguea si conecto o fallo.
+- Exporta conexion para que otros modulos hagan queries.
+
+rutas.js
+- Define endpoints REST:
+  GET /usuarios -> listar
+  POST /usuarios -> crear
+  PUT /usuarios/:id -> actualizar
+  DELETE /usuarios/:id -> borrar
+- Solo enruta; no contiene logica de negocio.
+
+controller.js
+- Recibe request/response de Express.
+- Llama a usuarioservice y traduce resultado a respuesta HTTP.
+- Exitos: lista 200, crear 201, actualizar/borrar 200.
+- Errores: 400 para validaciones, 500 en listado cuando falla DB.
+
+service.js
+- Contiene logica de negocio y SQL.
+- obtenerUsuarios: SELECT * FROM usuarios
+- crearUsuario: valida nombre/apellido y luego INSERT
+- actualizarUsuario: valida y luego UPDATE ... WHERE id = ?
+- eliminarUsuario: valida id y borra con DELETE
+- Usa placeholders ? para evitar inyeccion SQL.
+
+Frontend
+main.jsx
+- Punto de entrada de React.
+- Renderiza <App /> dentro de #root en StrictMode.
+
+App.jsx
+- Componente raiz.
+- Renderiza el componente Home.
+
+api.js
+- Cliente HTTP basico con fetch.
+- BASE_URL = http://localhost:3000/api
+- parseResponse decide si parsear JSON o texto.
+- request valida response.ok y lanza Error si falla.
+- Expone get/post/put/delete.
+
+home.jsx
+- Estado: usuarios, formData, editId.
+- fetchUsuarios(): GET /usuarios y carga tabla.
+- useEffect(..., []): carga datos al montar.
+- handleSubmit: PUT si editId, POST si no.
+- handleDelete: confirma, DELETE y recarga.
+- startEdit: carga usuario al formulario.
+- UI: formulario simple + tabla con Editar/Eliminar.
+
+Flujo Completo
+1. En React haces clic en crear/editar/borrar.
+2. home.jsx llama a api.js.
+3. api.js pega a http://localhost:3000/api/...
+4. app.js recibe y deriva a rutas.js.
+5. rutas.js llama a controller.js.
+6. controller.js delega en service.js.
+7. service.js ejecuta SQL usando database.js.
+8. La respuesta vuelve al frontend y React actualiza la tabla.
